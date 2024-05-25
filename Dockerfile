@@ -1,5 +1,5 @@
 # Use the official NVIDIA CUDA image as a parent image
-FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04
+FROM nvidia/cuda:12.1.0-runtime-ubuntu22.04
 
 # Update the package list and install necessary tools
 RUN apt-get update --yes && \
@@ -18,14 +18,15 @@ RUN apt-get update --yes && \
 # Set the working directory
 WORKDIR /workspace
 
-# Download mambaforge script
-RUN wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh
+# Update PATH environment variable
+ENV PATH=/opt/conda/bin:$PATH
 
-# Install mambaforge
-RUN bash Mambaforge-Linux-x86_64.sh
+# Start conda
+RUN conda create --name unsloth_env python=3.10
+RUN conda activate unsloth_env
 
 # Install dependencies
-RUN mamba install -y pytorch-cuda=12.1 pytorch cudatoolkit xformers -c pytorch -c nvidia -c xformers
+RUN conda install pytorch-cuda=12.1 pytorch cudatoolkit xformers -c pytorch -c nvidia -c xformers
 RUN pip install "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
 RUN pip install --no-deps trl peft accelerate bitsandbytes
 
