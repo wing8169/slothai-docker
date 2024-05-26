@@ -39,4 +39,6 @@ RUN git clone https://github.com/yowsitian/unsloth_test.git
 WORKDIR /workspace/unsloth_test
 
 # Run the application
-CMD ["python", "driver.py"]
+# CMD ["python", "driver.py"]
+# ENTRYPOINT ["tail", "-f", "/dev/null"]
+# CMD ["echo", "Hello world"]
