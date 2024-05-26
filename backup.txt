@@ -1,0 +1,54 @@
+# Use the official NVIDIA CUDA image as a parent image
+FROM nvidia/cuda:12.1.0-runtime-ubuntu22.04
+
+# Update the package list and install necessary tools
+RUN apt-get update --yes && \
+    apt-get install --yes --no-install-recommends \
+    wget \
+    bzip2 \
+    ca-certificates \
+    libglib2.0-0 \
+    libxext6 \
+    libsm6 \
+    libxrender1 \
+    git \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh && \
+/bin/bash /tmp/miniconda.sh -b -p /opt/conda && \
+rm /tmp/miniconda.sh
+
+# Update PATH environment variable
+ENV PATH=/opt/conda/bin:$PATH
+
+# Set the working directory
+WORKDIR /workspace
+
+# Initialize Conda for bash
+# RUN conda init bash
+
+# Reload the shell to ensure conda is initialized
+# SHELL ["/bin/bash", "-c"]
+
+# Start conda
+RUN conda create --name unsloth_env python=3.10
+RUN echo "source activate unsloth_env" > ~/.bashrc
+ENV PATH /opt/conda/envs/unsloth_env/bin:$PATH
+
+# SHELL ["conda", "run", "-n", "unsloth_env", "/bin/bash", "-c"]
+# RUN conda activate unsloth_env
+
+# Install dependencies
+RUN conda install --yes pytorch-cuda=12.1 pytorch cudatoolkit -c pytorch -c nvidia -c xformers
+RUN pip install "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
+RUN pip install --no-deps trl peft accelerate bitsandbytes xformers
+
+# Clone repo
+RUN git clone https://github.com/yowsitian/unsloth_test.git
+
+# Set the working directory to the cloned repository
+WORKDIR /workspace/unsloth_test
+
+# Run the application
+CMD ["python", "driver.py"]

@@ -1,5 +1,5 @@
 # Use the official NVIDIA CUDA image as a parent image
-FROM nvidia/cuda:12.1.0-runtime-ubuntu22.04
+FROM runpod/pytorch:2.0.1-py3.10-cuda11.8.0-devel-ubuntu22.04
 
 # Update the package list and install necessary tools
 RUN apt-get update --yes && \
@@ -18,17 +18,19 @@ RUN apt-get update --yes && \
 # Set the working directory
 WORKDIR /workspace
 
-# Update PATH environment variable
-ENV PATH=/opt/conda/bin:$PATH
+# Add deadsnakes PPA and install Python 3.10
+# RUN add-apt-repository ppa:deadsnakes/ppa && \
+#     apt-get update && \
+#     apt-get install -y python3.10 python3.10-venv python3.10-dev
 
-# Start conda
-RUN conda create --name unsloth_env python=3.10
-RUN conda activate unsloth_env
+# # Create a symlink to make python3 point to python3.10
+# RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
 
-# Install dependencies
-RUN conda install pytorch-cuda=12.1 pytorch cudatoolkit xformers -c pytorch -c nvidia -c xformers
-RUN pip install "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
-RUN pip install --no-deps trl peft accelerate bitsandbytes
+# # Install pip for Python 3.10
+# RUN apt-get install -y python3-pip
+RUN pip install --upgrade --force-reinstall --no-cache-dir torch==2.1.0 triton --index-url https://download.pytorch.org/whl/cu118
+RUN pip install "unsloth[cu118] @ git+https://github.com/unslothai/unsloth.git"
+RUN pip install python-dotenv
 
 # Clone repo
 RUN git clone https://github.com/yowsitian/unsloth_test.git
